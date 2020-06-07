@@ -293,7 +293,7 @@ select:hover {
   box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   width: "90%";
   max-width: 760px;
-  background-color: #373fff;
+  background-color: #ccc;
   margin: 2rem auto;
   border-radius: 1rem;
 }
@@ -347,6 +347,7 @@ select:hover {
   border-radius: 1rem;
 }
 #canvas-text {
+  display: none;
   user-select: none;
   position: absolute;
   background-color: #373fff;
@@ -359,6 +360,7 @@ select:hover {
   border-radius: 0.5rem;
 }
 #canvas-text-left {
+  display: none;
   user-select: none;
   position: absolute;
   background-color: #fff;
@@ -375,6 +377,7 @@ select:hover {
 
 /* share */
 #share-container {
+  display: none;
   position: relative;
   /* flex-direction: row; */
   /* align-items: center; */

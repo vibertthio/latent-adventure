@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Pop Music Transformer</title>
+    <title>Music Demo Template</title>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -38,8 +38,9 @@
 
     <!-- import the webpage's javascript file -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/13.8.5/Tone.min.js"></script>
-
-    <script src="./data.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/1.2.8/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@magenta/music@^1.0.0/es6/music_vae.js"></script>
+    <script src="./utils.js"></script>
     <script src="./libs/StartAudioContext.js"></script>
     <script src="./libs/Tonejs-Instruments.js"></script>
     <script src="./script.js" defer></script>
@@ -47,33 +48,24 @@
   <body>
     <div id="splash">
       <div id="splash-div">
-        <h1>Pop Music Transformer</h1>
+        <h1>Template For Magenta Projects</h1>
 
-        <h2>✍️ Riff → 🎵 Melody</h2>
+        <h2>idea → prototype</h2>
         <!-- <p id="warning">(Support desktop only.)</p> -->
         <p class="project-description">
-          Join force with this AI to create music! Based on your input, the
-          model can compose subsequent notes. Draw something to inspire the
-          model, and it could be anything you like! Check out the
+          Created by Vibert. And
           <a
             class="link"
             href="https://github.com/YatingMusic/remi"
             target="_blank"
-            >paper</a
+            >links</a
           >
-          if you are interested in the model. Or, download the
-          <a
-            class="link"
-            href="https://ailabs.tw/yating-music-ios-app/"
-            target="_blank"
-            >iOS App</a
-          >
-          for more such music
+          look like this.
         </p>
         <button id="splash-play-btn">► play</button>
         <p>
-          <a class="link" href="https://ailabs.tw/" target="_blank"
-            >👩‍💻 AILabs.tw</a
+          <a class="link" href="https://magenta.tensorflow.org/" target="_blank"
+            >👩‍💻 Magenta</a
           >
           +
           <a
@@ -98,7 +90,10 @@
 														><img src="./assets/vibert.png" alt="vibert logo" height="21"
 													/></a> -->
             <a class="logo" href="https://www.sinica.edu.tw/" target="_blank"
-              ><img src="./assets/sinica.png" alt="sinica logo" height="21"
+              ><img
+                src="./assets/magenta-logo.png"
+                alt="sinica logo"
+                height="21"
             /></a>
             <a class="logo" href="http://ailabs.tw/" target="_blank"
               ><img src="./assets/ailabs.png" alt="ailabs logo" height="21"
@@ -146,28 +141,23 @@
 
     <div id="wrapper">
       <header id="header">
-        <h1>Pop Music Transformer</h1>
+        <h1>Template For Magenta</h1>
         <p id="response-info">
-          Give the model your simple riff. The model could maybe give you back a
-          whole melody. Press <span>play</span> to hear the generated melody.
-          Listen to some melodies other user generated in the
-          <span>history</span>. Press <span>edit</span> to create a new riff.
-          About <span id="total-number">73</span> melodies have been generated
-          using this project.
+          Press <span>play</span> to hear the generated melody.
         </p>
       </header>
       <div id="control-container">
         <div id="control-div">
           <div class="btn-div">
             <button id="play-btn">
-              ► play
+              🤞submit
             </button>
             <span class="btn-tip" id="play-btn-tip">press to start</span>
           </div>
-          <button id="edit-btn">✏️edit</button>
+          <button id="edit-btn">👂hear</button>
         </div>
-        <span id="control-seperator">|</span>
-        <div id="history-div">
+        <!-- <span id="control-seperator">|</span> -->
+        <!-- <div id="history-div">
           <span id="history-span"
             >history [<span id="history-current-index">1</span>/<span
               id="history-length"
@@ -176,7 +166,7 @@
           >
           <button class="disabled" id="previous-btn">← previous</button>
           <button class="disabled" id="next-btn">next →</button>
-        </div>
+        </div> -->
       </div>
 
       <div id="canvas-wrapper">
@@ -206,8 +196,8 @@
 
       <footer>
         <p>
-          <a class="link" target="_blank" href="https://ailabs.tw/"
-            >AILabs.tw</a
+          <a class="link" target="_blank" href="https://magenta.tensorflow.org/"
+            >Magenta</a
           >
           +
           <a
