@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Music Demo Template</title>
+    <title>Latent Master</title>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -48,7 +48,7 @@
   <body>
     <div id="splash">
       <div id="splash-div">
-        <h1>Template For Magenta Projects</h1>
+        <h1>Latent Master</h1>
 
         <h2>idea → prototype</h2>
         <!-- <p id="warning">(Support desktop only.)</p> -->
@@ -126,7 +126,7 @@
         </div>
         <div id="edit-canvas-wrapper">
           <div id="edit-canvas-container">
-            <p id="edit-canvas-text">🎹 riff</p>
+            <button id="edit-canvas-text">🎹riff</button>
             <div id="edit-loading-text-div">
               <p id="edit-loading-text">
                 loading
@@ -141,20 +141,18 @@
 
     <div id="wrapper">
       <header id="header">
-        <h1>Template For Magenta</h1>
+        <h1>Latent Master</h1>
         <p id="response-info">
-          Press <span>play</span> to hear the generated melody.
+          Press <span>blue squares</span> to hear the melodies. The melody on
+          the top is in the interpolation of the two melodies on left and right.
+          Find the correct position for the top melody.
         </p>
       </header>
       <div id="control-container">
         <div id="control-div">
-          <div class="btn-div">
-            <button id="play-btn">
-              🤞submit
-            </button>
-            <span class="btn-tip" id="play-btn-tip">press to start</span>
-          </div>
-          <button id="edit-btn">👂hear</button>
+          <p id="play-btn">
+            score: 0
+          </p>
         </div>
         <!-- <span id="control-seperator">|</span> -->
         <!-- <div id="history-div">
@@ -172,17 +170,21 @@
       <div id="canvas-wrapper">
         <div id="canvas-container">
           <div id="panel-container">
-            <div>
+            <p>loading...</p>
+            <!-- <div>
               <button id="play-again-btn">
                 play again
               </button>
               <button id="play-next-btn">
                 play next →
               </button>
-            </div>
+            </div> -->
           </div>
-          <p id="canvas-text">🤖 generated</p>
-          <p id="canvas-text-left">🎹 riff</p>
+
+          <div id="canvas-buttons-div">
+            <button id="canvas-text-left">ok</button>
+            <p id="result-text">Good Job!</p>
+          </div>
           <canvas id="play-canvas"></canvas>
         </div>
       </div>

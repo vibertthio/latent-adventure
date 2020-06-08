@@ -34,7 +34,7 @@ h1 {
 #header {
   width: "100%";
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem;
 }
 
 /* edit splash */
@@ -196,8 +196,8 @@ select:hover {
   flex-direction: row;
   align-items: center;
   justify-content: space-evenly;
-  margin: 2rem auto 2rem auto;
-  height: 3rem;
+  margin: 0rem auto 0rem auto;
+  height: 2rem;
   /* background-color: rgba(230, 230, 230, 1); */
 }
 #control-container button {
@@ -208,7 +208,7 @@ select:hover {
   height: 2rem;
   min-width: 5rem;
   padding: 0 1rem 0 1rem;
-  margin-bottom: 0.5rem;
+  /* margin-bottom: 0.5rem; */
   border-color: #373fff;
   color: #373fff;
   background-color: #fff;
@@ -278,7 +278,20 @@ select:hover {
   position: relative;
 }
 #play-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  outline: none;
+  border: 2px solid;
+  border-radius: 1rem;
+  height: 1.8rem;
+  font-size: 0.8rem;
   min-width: 100px;
+  padding: none;
+
+  color: #373fff;
+  border-color: #373fff;
+  background-color: #fff;
 }
 #history-span {
   position: absolute;
@@ -300,8 +313,7 @@ select:hover {
 #canvas-container {
   position: relative;
   width: 100%;
-  height: 33vh;
-  min-height: 250px;
+  height: 40vh;
   border-radius: 1rem;
   display: flex;
   justify-content: center;
@@ -311,14 +323,17 @@ select:hover {
 #panel-container {
   width: 100%;
   height: 100%;
-  background-color: rgba(55, 63, 255, 0.4);
+  background-color: rgba(55, 63, 255, 0.8);
   opacity: 1;
   border-radius: 1rem;
-  z-index: 1;
-  display: none;
-  /* display: flex; */
+  z-index: 2;
+  /* display: none; */
+  display: flex;
   justify-content: center;
   align-items: center;
+}
+#panel-container p {
+  color: #fff;
 }
 #panel-container button {
   outline: none;
@@ -359,20 +374,46 @@ select:hover {
   padding: 0.2rem 0.5rem 0.2rem 0.5rem;
   border-radius: 0.5rem;
 }
-#canvas-text-left {
-  display: none;
-  user-select: none;
+#canvas-buttons-div {
   position: absolute;
-  background-color: #fff;
-  bottom: 0rem;
-  left: 1rem;
   z-index: 1;
-  opacity: 0.4;
-  padding: 0.2rem 0.5rem 0.2rem 0.5rem;
-  border-radius: 0.5rem;
+  bottom: 0rem;
 }
-#canvas-text-left:hover {
-  opacity: 1;
+#canvas-buttons-div button {
+  outline: none;
+  border: 2px solid;
+  border-radius: 0.9rem;
+  height: 1.8rem;
+  font-size: 0.8rem;
+  padding: 0 2rem 0 2rem;
+  margin-bottom: 2rem;
+
+  color: #373fff;
+  border-color: #373fff;
+  background-color: #fff;
+}
+#canvas-buttons-div button:hover {
+  border: 1.5px solid;
+  border-radius: 1rem;
+  border-color: #373fff;
+  color: #fff;
+  background-color: #373fff;
+}
+#result-text {
+  display: none;
+  position: absolute;
+  top: -2rem;
+  width: 100%;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+#canvas-text-left.win {
+  color: #090;
+}
+
+#canvas-text-left.lose {
+  color: #f00;
 }
 
 /* share */
@@ -592,12 +633,12 @@ footer p {
     right: 0.5rem;
     padding: 0.2rem 0.5rem 0.2rem 0.5rem;
   }
-  #canvas-text-left {
+  /* #canvas-text-left {
     font-size: 0.7rem;
     bottom: 0rem;
     left: 0.5rem;
     padding: 0.2rem 0.5rem 0.2rem 0.5rem;
-  }
+  } */
   #edit-splash {
     display: none;
     opacity: 0;

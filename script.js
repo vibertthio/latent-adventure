@@ -1,66 +1,222 @@
+console.log("Vibert 2020-06-07");
+
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 if (isMobile) {
   console.log("[mobile]");
 }
-
-const EDIT_LOOP = true;
+const { Part } = Tone;
 const BPM = 120;
-const INITIAL_DATA_INDEX = 0;
-const NUMBER_OF_NOTES = 36;
-const NUMBER_OF_BARS = 8;
-const NUMBER_OF_INPUT_BARS = 2;
-const NOTE_EXTENSION = 15;
-const NOTES_PER_BAR = 16;
+const COLORS = [
+  // "rgb(255, 178, 230)",
+  // "rgb(140, 255, 218)",
+  // "rgb(229, 117, 66)",
+  // "rgb(230, 194, 41)",
+  // "rgb(30, 150, 252)",
+  // "rgb(162, 214, 249)",
+  "rgb(55, 63, 255)",
+  "rgb(55, 63, 255)",
+  "rgba(255, 255, 232, 1)",
+  "rgb(55, 63, 255)",
+];
+const LOWER_BAR_RATIO = 0.6;
+const HIGHER_BAR_RATIO = 0.3;
+const GRID_RATIO = isMobile ? 0.18 : 0.27;
+const DISTANCE_RATIO = isMobile ? 0.7 : 0.6;
+const RADIO_WIDTH_RATIO = isMobile ? 0.7 : 0.8;
 
 const controlPlayButton = document.getElementById("play-btn");
 const playButtonTip = document.getElementById("play-btn-tip");
-const controlEditPlayButton = document.getElementById("edit-play-btn");
+const submitButton = document.getElementById("canvas-text-left");
+const resultTextElement = document.getElementById("result-text");
+const scoreElement = document.getElementById("play-btn");
+const canvasLayer = document.getElementById("panel-container");
+let part;
+const synth = new Tone.PolySynth(3, Tone.Synth, {
+  oscillator: {
+    // "type": "fatsawtooth",
+    type: "triangle8",
+    // "type": "square",
+    count: 1,
+    spread: 30,
+  },
+  envelope: {
+    attack: 0.01,
+    decay: 0.1,
+    sustain: 0.5,
+    release: 0.4,
+    attackCurve: "exponential",
+  },
+}).toMaster();
+let leftMelody = presetMelodies["Twinkle"];
+let rightMelody = presetMelodies["Bounce"];
+let middleMelody;
+let interpolations;
+let numberOfInterpolations = 3;
+let ansIndex = 2;
+let selectedIndex = -1;
+let playingMelodyIndex = 0;
+let score = 0;
+let playing = true;
+let won = false;
+
+const canvas = document.getElementById("play-canvas");
+canvas.width = document.getElementById("canvas-container").clientWidth;
+canvas.height = document.getElementById("canvas-container").clientHeight;
+const mousePosition = { x: 0, y: 0 };
+
+const audioContext = Tone.context;
+let editing = false;
+let waitingForResponse = false;
+let currentUrlId;
+let pianoroll;
+let events;
+let inputPianoroll;
+let inputEvents;
+let pianoLoading = true;
+const mvae = new music_vae.MusicVAE(
+  "https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/mel_2bar_small"
+);
+mvae.initialize();
+mvae
+  .interpolate([leftMelody, rightMelody], numberOfInterpolations + 2)
+  .then((sample) => {
+    interpolations = sample.slice(1, sample.length - 1);
+    middleMelody = interpolations[ansIndex];
+    canvasLayer.style.display = "none";
+  });
+
+const piano = SampleLibrary.load({
+  instruments: "piano",
+});
+
+const playPianoNote = (time = 0, pitch = 55, length = 8, vol = 0.3) => {
+  // console.log("time", time);
+  // console.log("play currentTime", audioContext.now());
+  // console.log("pitch", pitch);
+  piano.triggerAttackRelease(
+    Tone.Frequency(pitch, "midi"),
+    length * 0.5,
+    time,
+    vol
+  );
+};
+
+Tone.Buffer.on("load", () => {
+  // piano.sync();
+  const reverb = new Tone.JCReverb(0.5).toMaster();
+  piano.connect(reverb);
+  pianoLoading = false;
+  document.getElementById("splash-play-btn").classList.add("activated");
+  console.log("Samples loaded");
+});
+
+if (!canvas.getContext) {
+  console.log("<canvas> not supported.");
+}
 
 // events
+document
+  .getElementById("splash-play-btn")
+  .addEventListener("click", async (e) => {
+    document.getElementById("wrapper").style.visibility = "visible";
+    const splash = document.getElementById("splash");
+    splash.style.opacity = 0;
+    setTimeout(() => {
+      splash.style.display = "none";
+    }, 300);
+    if (audioContext.state == "suspended") {
+      console.log("audioContext.resume");
+      audioContext.resume();
+    }
+
+    setup();
+    draw();
+  });
 window.addEventListener("resize", () => {
   const canvas = document.getElementById("play-canvas");
   canvas.width = document.getElementById("canvas-container").clientWidth;
   canvas.height = document.getElementById("canvas-container").clientHeight;
 });
-function startEditingMode() {
-  const splash = document.getElementById("edit-splash");
-  splash.style.display = "block";
-  // splash.style.opacity = 0;
-  stopMainSequencer(true, false);
-  document.getElementById("panel-container").style.display = "none";
-  setTimeout(() => {
-    splash.style.opacity = 1;
-    editCanvasRect = editCanvas.getBoundingClientRect();
-    // splash.classList.add("show");
-    editing = true;
-  }, 10);
+submitButton.addEventListener("click", (e) => {
+  e.stopPropagation();
+  submitButton.textContent = "ok";
+  resultTextElement.style.display = "none";
+  if (!playing) {
+    // 0. cover the canvas with loading splash
+    canvasLayer.style.display = "flex";
+    if (!won) {
+      updateScore(0);
+    }
+    updateGame();
+    return;
+  }
 
-  const editCanvasContainer = document.getElementById("edit-canvas-container");
-  editCanvas.width = editCanvasContainer.clientWidth;
-  editCanvas.height = editCanvasContainer.clientHeight;
-}
-document.getElementById("edit-btn").addEventListener("click", () => {
-  // startEditingMode();
+  playing = false;
+  // check asnwer
+
+  console.log(`ans index: ${ansIndex}, select index: ${selectedIndex}`);
+  if (selectedIndex === ansIndex) {
+    submitButton.textContent = "Next";
+    resultTextElement.style.display = "block";
+    resultTextElement.textContent = "Good Job!";
+    updateScore(score + 1);
+    won = true;
+  } else {
+    // lose
+    // submitButton.classList.toggle("lose");
+    resultTextElement.style.display = "block";
+    resultTextElement.textContent = "Oh no, you lost!";
+    submitButton.textContent = "Play Again!";
+    won = false;
+  }
 });
-document.getElementById("play-btn").addEventListener("click", () => {
-  // // console.log("audio context state", audioContext.state);
-  // if (audioContext.state == "suspended") {
-  //   // console.log("audioContext.resume");
-  //   audioContext.resume();
-  // }
-  // if (sequencer.state === "started") {
-  //   stopMainSequencer();
-  // } else {
-  //   startMainSequencer();
-  // }
-});
-document.getElementById("play-again-btn").addEventListener("click", (e) => {
-  // if (audioContext.state == "suspended") {
-  //   // console.log("audioContext.resume");
-  //   audioContext.resume();
-  // }
-  // startMainSequencer();
-  // e.stopPropagation();
+document
+  .getElementById("canvas-container")
+  .addEventListener("mousemove", (e) => {
+    const { clientX, clientY } = e;
+    const { width, height } = canvas;
+    let canvasRect = canvas.getBoundingClientRect();
+
+    mousePosition.x = clientX - canvasRect.left;
+    mousePosition.y = clientY - canvasRect.top;
+  });
+document.getElementById("canvas-container").addEventListener("click", (e) => {
+  if (!playing) {
+    return;
+  }
+
+  const { clientX, clientY } = e;
+  const { width, height } = canvas;
+  let canvasRect = canvas.getBoundingClientRect();
+  const mouseX = clientX - canvasRect.left;
+  const mouseY = clientY - canvasRect.top;
+
+  if (Math.abs(mouseY - height * LOWER_BAR_RATIO) < height * GRID_RATIO * 0.5) {
+    const limit = width * DISTANCE_RATIO * RADIO_WIDTH_RATIO * 0.5;
+    if (mouseX - width * 0.5 < -limit) {
+      console.log("left");
+      playingMelodyIndex = 0;
+      playMelody(leftMelody);
+    } else if (mouseX - width * 0.5 > limit) {
+      console.log("right");
+      playingMelodyIndex = 1;
+      playMelody(rightMelody);
+    } else {
+      selectedIndex = Math.floor(
+        ((mouseX - width * (1 - DISTANCE_RATIO * RADIO_WIDTH_RATIO) * 0.5) /
+          (width * DISTANCE_RATIO * RADIO_WIDTH_RATIO)) *
+          numberOfInterpolations
+      );
+      console.log(`select ${selectedIndex}`);
+    }
+  } else if (
+    Math.abs(mouseY - height * HIGHER_BAR_RATIO) <
+    height * GRID_RATIO * 0.5
+  ) {
+    console.log("high");
+    playingMelodyIndex = 2;
+    playMelody(interpolations[ansIndex]);
+  }
 });
 
 // methods
@@ -85,31 +241,71 @@ function draw() {
   });
 }
 
-function closeEditSplash() {
-  const splash = document.getElementById("edit-splash");
-  // splash.classList.remove("show");
-  splash.style.opacity = 0;
-  editing = false;
-  setTimeout(() => {
-    splash.style.display = "none";
-  }, 500);
-}
 function drawPatterns(ctx) {
   const { width, height } = ctx.canvas;
-  const distance = width * 0.6;
+  const distance = width * DISTANCE_RATIO;
+  const gridWidth = height * GRID_RATIO;
+  const cornerRadius = height * 0.05;
 
-  ctx.fillStyle = "rgba(0, 0, 200, 0.3)";
   // ctx.strokeStyle = "rgba(0, 0, 200, 1.0)";
   // ctx.lineWidth = 3;
+  ctx.save();
+
+  ctx.translate(width * 0.5, height * LOWER_BAR_RATIO);
+
+  // interpolated melody
+  ctx.save();
+  ctx.strokeStyle = COLORS[3];
+  ctx.lineWidth = 3;
+  ctx.translate(
+    -gridWidth * 0.5,
+    -gridWidth * 0.5 - height * (LOWER_BAR_RATIO - HIGHER_BAR_RATIO)
+  );
+  if (selectedIndex !== -1) {
+    const d = width * DISTANCE_RATIO * RADIO_WIDTH_RATIO;
+    ctx.translate(
+      -0.5 * d + (d * (selectedIndex + 1)) / (numberOfInterpolations + 1),
+      0
+    );
+    ctx.fillStyle = COLORS[3];
+    ctx.fillRect(gridWidth * 0.5 - 2, gridWidth + 8, 4, 25);
+    // ctx.translate(-0.5 * d, 0);
+  }
+  roundRect(
+    ctx,
+    0,
+    0,
+    gridWidth,
+    gridWidth,
+    {
+      tl: cornerRadius,
+      tr: cornerRadius,
+      bl: cornerRadius,
+      br: cornerRadius,
+    },
+    false,
+    true
+  );
+  if (middleMelody) {
+    drawMelody(
+      ctx,
+      gridWidth,
+      gridWidth,
+      middleMelody,
+      playingMelodyIndex === 2
+    );
+  }
+  ctx.restore();
+
   for (let side = 0; side < 2; side++) {
-    const gridWidth = height * 0.3;
-    const cornerRadius = height * 0.05;
-    const gridPositionX =
-      width * 0.5 - gridWidth * 0.5 - distance * (side ? -0.5 : 0.5);
-    const gridPositionY = height * 0.5 - gridWidth * 0.5;
+    const gridPositionX = -gridWidth * 0.5 + distance * (side - 0.5);
+    const gridPositionY = -gridWidth * 0.5;
 
     ctx.save();
     ctx.translate(gridPositionX, gridPositionY);
+    // ctx.fillStyle = COLORS[side];
+    ctx.strokeStyle = COLORS[3];
+    ctx.lineWidth = 3;
     roundRect(
       ctx,
       0,
@@ -122,18 +318,58 @@ function drawPatterns(ctx) {
         bl: cornerRadius,
         br: cornerRadius,
       },
-      true,
-      false
+      false,
+      true
     );
 
     // draw melody or drum patterns
-    const melody = side ? presetMelodies["Twinkle"] : presetMelodies["Dense"];
-    drawMelody(ctx, gridWidth, gridWidth, melody);
+    const melody = side === 0 ? leftMelody : rightMelody;
+    drawMelody(ctx, gridWidth, gridWidth, melody, side === playingMelodyIndex);
+
     ctx.restore();
   }
+
+  // radio
+  for (let i = 1; i < numberOfInterpolations + 1; i++) {
+    const unit = gridWidth * 0.08;
+    const dd = distance * RADIO_WIDTH_RATIO;
+    const d = dd / (numberOfInterpolations + 1);
+    const ratio = 1 + Math.sin(Date.now() * 0.005) * 0.1;
+    const u = ratio * unit;
+    // const x = -dd * 0.5 + d * i - u * 0.5;
+    // const y = -u * 0.5;
+
+    // ctx.fillStyle = blendRGBColors(COLORS[1], COLORS[0], i / nOfSquares);
+    // ctx.fillRect(x, y, unit * ratio, unit * ratio);
+
+    const x = -dd * 0.5 + d * i;
+    const y = 0;
+
+    if (i === selectedIndex + 1) {
+      ctx.beginPath();
+      ctx.arc(x, y, u * 0.7, 0, 2 * Math.PI);
+      ctx.fillStyle = blendRGBColors(
+        COLORS[1],
+        COLORS[0],
+        i / numberOfInterpolations
+      );
+      ctx.fill();
+    }
+    ctx.beginPath();
+    ctx.arc(x, y, u, 0, 2 * Math.PI);
+    ctx.strokeStyle = blendRGBColors(
+      COLORS[1],
+      COLORS[0],
+      i / numberOfInterpolations
+    );
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  ctx.restore();
 }
 
-function drawMelody(ctx, width, height, melody) {
+function drawMelody(ctx, width, height, melody, drawProgress = false) {
   const { notes, totalQuantizedSteps } = melody;
   const wUnit = width / totalQuantizedSteps;
   const hUnit = height / 48;
@@ -141,126 +377,69 @@ function drawMelody(ctx, width, height, melody) {
     ctx.save();
     const { pitch, quantizedStartStep, quantizedEndStep } = notes[i];
     ctx.translate(quantizedStartStep * wUnit, (96 - pitch) * hUnit);
-    ctx.fillStyle = "rgb(50, 60, 60)";
-    const w = (quantizedEndStep - quantizedStartStep) * wUnit;
+    // ctx.fillStyle = COLORS[side];
+    // ctx.fillStyle = COLORS[2];
+    ctx.fillStyle = COLORS[3];
+    const w = (quantizedEndStep - quantizedStartStep) * wUnit * 0.85;
     ctx.fillRect(0, 0, w, hUnit);
     ctx.restore();
   }
-}
 
-function stopMainSequencer(cancelEnvelopes = true, showPanel = true) {
-  controlPlayButton.textContent = "► play";
-  beat = -1;
-  sequencer.stop();
-  sequencer.cancel(audioContext.now());
-  if (cancelEnvelopes) {
-    piano.volume.rampTo(-100, 0.5);
-    piano.releaseAll(audioContext.now());
-  } else {
-    // piano.volume.rampTo(-100, 5);
-  }
-
-  if (showPanel) {
-    document.getElementById("panel-container").style.display = "flex";
+  if (drawProgress && part && part.state === "started") {
+    ctx.fillStyle = "rgb(0, 150, 0)";
+    ctx.fillRect(width * part.progress, 0, 5, height);
   }
 }
-function startMainSequencer() {
-  // console.log("start time", audioContext.now());
-  // piano.releaseAll(audioContext.now());
-  piano.releaseAll("+0.05");
-  controlPlayButton.textContent = "stop";
-  piano.volume.rampTo(0, 0);
-  // sequencer.start(audioContext.now());
-  sequencer.start("+0.1");
 
-  document.getElementById("panel-container").style.display = "none";
-}
-
-// audio
-// const audioContext = new Tone.Context();
-// const AudioContextFunc = window.AudioContext || window.webkitAudioContext;
-// const audioContext = new AudioContextFunc();
-const audioContext = Tone.context;
-let editing = false;
-let waitingForResponse = false;
-let currentUrlId;
-let pianoroll;
-let events;
-let inputPianoroll;
-let inputEvents;
-let pianoLoading = true;
-
-const play = (time = 0, pitch = 55, length = 8, vol = 0.3) => {
-  // console.log("time", time);
-  // console.log("play currentTime", audioContext.now());
-  // console.log("pitch", pitch);
-  piano.triggerAttackRelease(
-    Tone.Frequency(pitch, "midi"),
-    length * 0.5,
-    time,
-    vol
-  );
-};
-
-let beat = -1;
-const sequencer = new Tone.Sequence(
-  (time, b) => {
-    // console.log(`b[${b}], time: ${time}`);
-    beat = b;
-    const es = events[b];
-    if (es) {
-      es.forEach(({ note, length }) => {
-        play(time, note + NUMBER_OF_NOTES, length * 0.2);
-      });
-    }
-    if (b >= NUMBER_OF_BARS * NOTES_PER_BAR - 1) {
-      // console.log(`b[${b}]: stop`);
-      stopMainSequencer(false);
-      beat = -1;
-    }
-  },
-  Array(NUMBER_OF_BARS * NOTES_PER_BAR)
-    .fill(null)
-    .map((_, i) => i),
-  "16n"
-);
-
-const canvas = document.getElementById("play-canvas");
-canvas.width = document.getElementById("canvas-container").clientWidth;
-canvas.height = document.getElementById("canvas-container").clientHeight;
-
-if (!canvas.getContext) {
-  console.log("<canvas> not supported.");
-}
-
-document
-  .getElementById("splash-play-btn")
-  .addEventListener("click", async (e) => {
-    document.getElementById("wrapper").style.visibility = "visible";
-    const splash = document.getElementById("splash");
-    splash.style.opacity = 0;
-    setTimeout(() => {
-      splash.style.display = "none";
-    }, 300);
-    if (audioContext.state == "suspended") {
-      console.log("audioContext.resume");
-      audioContext.resume();
-    }
-
-    setup();
-    draw();
+function playMelody(melody) {
+  const notes = melody.notes.map((note) => {
+    const s = note.quantizedStartStep;
+    return {
+      time: `${Math.floor(s / 16)}:${Math.floor(s / 4) % 4}:${s % 4}`,
+      note: Tone.Frequency(note.pitch, "midi"),
+      length: note.quantizedEndStep - note.quantizedStartStep,
+    };
   });
 
-var piano = SampleLibrary.load({
-  instruments: "piano",
-});
-Tone.Buffer.on("load", function () {
-  // piano.sync();
-  const reverb = new Tone.JCReverb(0.5).toMaster();
-  piano.connect(reverb);
-  pianoLoading = false;
-  document.getElementById("splash-play-btn").classList.add("activated");
-  console.log("Samples loaded");
-});
+  if (part) {
+    part.stop();
+  }
 
-console.log("Vibert 2020-06-07");
+  part = new Part((time, value) => {
+    playPianoNote(time, value.note, value.length);
+  }, notes);
+  part.loop = 1;
+  part.loopEnd = "2:0:0";
+  part.start("+0.1");
+  part.stop("+2m");
+}
+
+function updateScore(s) {
+  score = s;
+  scoreElement.textContent = `score: ${score}`;
+}
+
+function updateGame() {
+  // 1. update left and right melody
+  // 2. wait for interpolations of left and right
+  // 3. get a new ansIndex (random)
+  // 4. show the new game
+  const keys = Object.keys(presetMelodies);
+  const leftIndex = Math.floor(Math.random() * keys.length);
+  let rightIndex = Math.floor(Math.random() * keys.length);
+  while (leftIndex === rightIndex) {
+    rightIndex = Math.floor(Math.random() * keys.length);
+  }
+  leftMelody = presetMelodies[keys[leftIndex]];
+  rightMelody = presetMelodies[keys[rightIndex]];
+  selectedIndex = -1;
+  ansIndex = Math.floor(Math.random() * numberOfInterpolations);
+  mvae
+    .interpolate([leftMelody, rightMelody], numberOfInterpolations + 2)
+    .then((sample) => {
+      interpolations = sample.slice(1, sample.length - 1);
+      middleMelody = interpolations[ansIndex];
+      canvasLayer.style.display = "none";
+      playing = true;
+    });
+}

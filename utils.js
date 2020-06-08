@@ -145,16 +145,16 @@ const presetMelodies = {
   },
   "Melody 1": {
     notes: [
-      { pitch: toMidi("A3"), quantizedStartStep: 0, quantizedEndStep: 4 },
-      { pitch: toMidi("D4"), quantizedStartStep: 4, quantizedEndStep: 6 },
-      { pitch: toMidi("E4"), quantizedStartStep: 6, quantizedEndStep: 8 },
-      { pitch: toMidi("F4"), quantizedStartStep: 8, quantizedEndStep: 10 },
-      { pitch: toMidi("D4"), quantizedStartStep: 10, quantizedEndStep: 12 },
-      { pitch: toMidi("E4"), quantizedStartStep: 12, quantizedEndStep: 16 },
-      { pitch: toMidi("C4"), quantizedStartStep: 16, quantizedEndStep: 20 },
-      { pitch: toMidi("D4"), quantizedStartStep: 20, quantizedEndStep: 26 },
-      { pitch: toMidi("A3"), quantizedStartStep: 26, quantizedEndStep: 28 },
-      { pitch: toMidi("A3"), quantizedStartStep: 28, quantizedEndStep: 32 },
+      { pitch: toMidi("A4"), quantizedStartStep: 0, quantizedEndStep: 4 },
+      { pitch: toMidi("D5"), quantizedStartStep: 4, quantizedEndStep: 6 },
+      { pitch: toMidi("E5"), quantizedStartStep: 6, quantizedEndStep: 8 },
+      { pitch: toMidi("F5"), quantizedStartStep: 8, quantizedEndStep: 10 },
+      { pitch: toMidi("D5"), quantizedStartStep: 10, quantizedEndStep: 12 },
+      { pitch: toMidi("E5"), quantizedStartStep: 12, quantizedEndStep: 16 },
+      { pitch: toMidi("C5"), quantizedStartStep: 16, quantizedEndStep: 20 },
+      { pitch: toMidi("D5"), quantizedStartStep: 20, quantizedEndStep: 26 },
+      { pitch: toMidi("A4"), quantizedStartStep: 26, quantizedEndStep: 28 },
+      { pitch: toMidi("A4"), quantizedStartStep: 28, quantizedEndStep: 32 },
     ],
     quantizationInfo: { stepsPerQuarter: 4 },
     tempos: [{ time: 0, qpm: 120 }],
@@ -238,4 +238,21 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
   if (stroke) {
     ctx.stroke();
   }
+}
+
+function blendRGBColors(c0, c1, p) {
+  const f = c0.split(", "),
+    t = c1.split(", "),
+    R = parseInt(f[0].slice(4)),
+    G = parseInt(f[1]),
+    B = parseInt(f[2]);
+  return (
+    "rgb( " +
+    (Math.round((parseInt(t[0].slice(4)) - R) * p) + R) +
+    ", " +
+    (Math.round((parseInt(t[1]) - G) * p) + G) +
+    ", " +
+    (Math.round((parseInt(t[2]) - B) * p) + B) +
+    ") "
+  );
 }
