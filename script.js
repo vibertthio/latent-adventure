@@ -511,9 +511,8 @@ async function getMelodies() {
     mvae.encode([melodies[nOfBlocks]]),
   ]);
 
-  // console.log("distance: ", nowTensor.sub(targetTensor).print());
   const [dist] = await nowTensor.sub(targetTensor).norm().data();
-  console.log("dist", dist);
+  // console.log("dist", dist);
   if (dist < 0.1) {
     canvasLayer.style.display = "flex";
     loadingTextElement.style.display = "none";
