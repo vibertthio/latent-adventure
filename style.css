@@ -191,7 +191,7 @@ select:hover {
 /* controls */
 #control-container {
   display: flex;
-  width: 90%;
+  width: 70%;
   max-width: 600px;
   flex-direction: row;
   align-items: center;
@@ -377,7 +377,10 @@ select:hover {
 #canvas-buttons-div {
   position: absolute;
   z-index: 1;
-  bottom: 0rem;
+  bottom: 0;
+  right: 0;
+  width: 70%;
+  text-align: center;
 }
 #canvas-buttons-div button {
   outline: none;
@@ -566,6 +569,16 @@ footer p {
 #layer-button-div h2 {
   color: #fff;
   font-size: 2rem;
+}
+
+#target-text {
+  position: absolute;
+  width: 30%;
+  top: 0;
+  left: 0;
+  text-align: center;
+  color: #fff;
+  z-index: 1;
 }
 
 @media only screen and (max-width: 767px) {

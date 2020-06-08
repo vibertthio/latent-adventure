@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Latent Master</title>
+    <title>Latent Adventure</title>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -48,7 +48,7 @@
   <body>
     <div id="splash">
       <div id="splash-div">
-        <h1>Latent Master</h1>
+        <h1>Latent Adventure</h1>
 
         <!-- <h3></h3> -->
         <!-- <p id="warning">(Support desktop only.)</p> -->
@@ -136,19 +136,21 @@
 
     <div id="wrapper">
       <header id="header">
-        <h1>Latent Master</h1>
+        <h1>Latent Adventure</h1>
         <p id="response-info">
           Press <span>blue squares</span> to hear the melodies. The melody on
-          the top is in the interpolation of the two melodies on left and right.
-          Find the correct position for the top melody.
+          the left is your goal. You can only win this game by finding the goal
+          melody. You should pick the most possible next step in every round and
+          hit <span>go</span>.
         </p>
       </header>
       <div id="control-container">
         <div id="control-div">
           <p id="play-btn">
-            score: 0
+            steps: 0
           </p>
         </div>
+        <button>reset</button>
         <!-- <span id="control-seperator">|</span> -->
         <!-- <div id="history-div">
           <span id="history-span"
@@ -164,6 +166,7 @@
 
       <div id="canvas-wrapper">
         <div id="canvas-container">
+          <p id="target-text">Target</p>
           <div id="panel-container">
             <div id="loading-div">
               <p>loading...</p>
@@ -178,7 +181,7 @@
           </div>
 
           <div id="canvas-buttons-div">
-            <button id="canvas-text-left">ok</button>
+            <button id="canvas-text-left">go</button>
             <p id="result-text">Good Job!</p>
           </div>
           <canvas id="play-canvas"></canvas>
