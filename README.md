@@ -1,2 +1,1 @@
-![](./assets/transformer.png)
-
+![](./assets/screenshot.png)
