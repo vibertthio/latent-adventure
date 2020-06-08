@@ -443,7 +443,17 @@ function drawMelody(ctx, width, height, melody, drawProgress = false) {
       ctx.translate(quantizedStartStep * wUnit, (96 - pitch) * hUnit);
       // ctx.fillStyle = COLORS[side];
       // ctx.fillStyle = COLORS[2];
+
       ctx.fillStyle = COLORS[3];
+
+      if (drawProgress && part && part.state === "started" && part.progress) {
+        if (
+          part.progress > quantizedStartStep / totalQuantizedSteps &&
+          part.progress < quantizedEndStep / totalQuantizedSteps
+        ) {
+          ctx.fillStyle = "rgba(0, 150, 0)";
+        }
+      }
       const w = (quantizedEndStep - quantizedStartStep) * wUnit * 0.85;
       ctx.fillRect(0, 0, w, hUnit);
       ctx.restore();
