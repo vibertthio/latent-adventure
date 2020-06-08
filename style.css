@@ -468,6 +468,8 @@ select:hover {
   /* padding: 25vh 0; */
 }
 #splash-div {
+  margin: 0 auto;
+  max-width: 500px;
   padding: 25vh 0;
 }
 #splash p {

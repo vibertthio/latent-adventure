@@ -79,16 +79,18 @@ let events;
 let inputPianoroll;
 let inputEvents;
 let pianoLoading = true;
+let modelLoading = true;
 const mvae = new music_vae.MusicVAE(
   "https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/mel_2bar_small"
 );
-mvae.initialize();
+// mvae.initialize();
 mvae
   .interpolate([leftMelody, rightMelody], numberOfInterpolations + 2)
   .then((sample) => {
     interpolations = sample.slice(1, sample.length - 1);
     middleMelody = interpolations[ansIndex];
     canvasLayer.style.display = "none";
+    modelLoading = false;
   });
 
 const piano = SampleLibrary.load({
@@ -178,7 +180,7 @@ document
     }
   });
 document.getElementById("canvas-container").addEventListener("click", (e) => {
-  if (!playing) {
+  if (!playing || modelLoading) {
     return;
   }
 
@@ -435,15 +437,17 @@ function drawMelody(ctx, width, height, melody, drawProgress = false) {
   const wUnit = width / totalQuantizedSteps;
   const hUnit = height / 48;
   for (let i = 0; i < notes.length; i++) {
-    ctx.save();
     const { pitch, quantizedStartStep, quantizedEndStep } = notes[i];
-    ctx.translate(quantizedStartStep * wUnit, (96 - pitch) * hUnit);
-    // ctx.fillStyle = COLORS[side];
-    // ctx.fillStyle = COLORS[2];
-    ctx.fillStyle = COLORS[3];
-    const w = (quantizedEndStep - quantizedStartStep) * wUnit * 0.85;
-    ctx.fillRect(0, 0, w, hUnit);
-    ctx.restore();
+    if (pitch < 96 && pitch > 48) {
+      ctx.save();
+      ctx.translate(quantizedStartStep * wUnit, (96 - pitch) * hUnit);
+      // ctx.fillStyle = COLORS[side];
+      // ctx.fillStyle = COLORS[2];
+      ctx.fillStyle = COLORS[3];
+      const w = (quantizedEndStep - quantizedStartStep) * wUnit * 0.85;
+      ctx.fillRect(0, 0, w, hUnit);
+      ctx.restore();
+    }
   }
 
   if (drawProgress && part && part.state === "started" && part.progress) {
