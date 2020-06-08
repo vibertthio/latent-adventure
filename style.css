@@ -557,6 +557,15 @@ footer p {
   text-decoration: underline;
 }
 
+#layer-button-div {
+  display: none;
+  text-align: center;
+}
+#layer-button-div h2 {
+  color: #fff;
+  font-size: 2rem;
+}
+
 @media only screen and (max-width: 767px) {
   p {
     font-size: 0.7rem;

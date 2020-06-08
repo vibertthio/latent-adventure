@@ -199,6 +199,53 @@ const presetMelodies = {
     tempos: [{ time: 0, qpm: 120 }],
     totalQuantizedSteps: 32,
   },
+  "Get Luck": {
+    notes: [
+      { pitch: 50, quantizedStartStep: 0, quantizedEndStep: 5 },
+      { pitch: 49, quantizedStartStep: 5, quantizedEndStep: 6 },
+      { pitch: 50, quantizedStartStep: 6, quantizedEndStep: 7 },
+      { pitch: 54, quantizedStartStep: 7, quantizedEndStep: 13 },
+      { pitch: 54, quantizedStartStep: 13, quantizedEndStep: 14 },
+      { pitch: 56, quantizedStartStep: 14, quantizedEndStep: 15 },
+      { pitch: 57, quantizedStartStep: 15, quantizedEndStep: 21 },
+      { pitch: 57, quantizedStartStep: 21, quantizedEndStep: 22 },
+      { pitch: 59, quantizedStartStep: 22, quantizedEndStep: 23 },
+      { pitch: 59, quantizedStartStep: 22, quantizedEndStep: 23 },
+      { pitch: 56, quantizedStartStep: 23, quantizedEndStep: 31 },
+      { pitch: 50, quantizedStartStep: 31, quantizedEndStep: 32 },
+    ],
+    quantizationInfo: { stepsPerQuarter: 4 },
+    tempos: [{ time: 0, qpm: 120 }],
+    totalQuantizedSteps: 32,
+  },
+  "Hey Jude": {
+    notes: [
+      { pitch: 52, quantizedStartStep: 0, quantizedEndStep: 4 },
+
+      { pitch: 52, quantizedStartStep: 5, quantizedEndStep: 6 },
+      { pitch: 55, quantizedStartStep: 6, quantizedEndStep: 7 },
+      { pitch: 57, quantizedStartStep: 7, quantizedEndStep: 8 },
+      { pitch: 50, quantizedStartStep: 8, quantizedEndStep: 12 },
+
+      { pitch: 50, quantizedStartStep: 14, quantizedEndStep: 15 },
+      { pitch: 52, quantizedStartStep: 15, quantizedEndStep: 16 },
+      { pitch: 53, quantizedStartStep: 16, quantizedEndStep: 18 },
+
+      { pitch: 60, quantizedStartStep: 18, quantizedEndStep: 21 },
+      { pitch: 60, quantizedStartStep: 21, quantizedEndStep: 22 },
+      { pitch: 59, quantizedStartStep: 22, quantizedEndStep: 23 },
+      { pitch: 55, quantizedStartStep: 23, quantizedEndStep: 24 },
+      { pitch: 57, quantizedStartStep: 24, quantizedEndStep: 25 },
+      { pitch: 55, quantizedStartStep: 25, quantizedEndStep: 26 },
+      { pitch: 53, quantizedStartStep: 26, quantizedEndStep: 27 },
+      { pitch: 52, quantizedStartStep: 27, quantizedEndStep: 30 },
+
+      { pitch: 55, quantizedStartStep: 31, quantizedEndStep: 32 },
+    ],
+    quantizationInfo: { stepsPerQuarter: 4 },
+    tempos: [{ time: 0, qpm: 120 }],
+    totalQuantizedSteps: 32,
+  },
 };
 
 function roundRect(ctx, x, y, width, height, radius, fill, stroke) {

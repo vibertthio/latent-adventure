@@ -24,12 +24,16 @@ const GRID_RATIO = isMobile ? 0.18 : 0.27;
 const DISTANCE_RATIO = isMobile ? 0.7 : 0.6;
 const RADIO_WIDTH_RATIO = isMobile ? 0.7 : 0.8;
 
-const controlPlayButton = document.getElementById("play-btn");
 const playButtonTip = document.getElementById("play-btn-tip");
 const submitButton = document.getElementById("canvas-text-left");
 const resultTextElement = document.getElementById("result-text");
 const scoreElement = document.getElementById("play-btn");
 const canvasLayer = document.getElementById("panel-container");
+const endingButtonDivElement = document.getElementById("layer-button-div");
+const loadingTextElement = document.getElementById("loading-div");
+const commentTextElement = document.getElementById("comment");
+const playAgainButton = document.getElementById("play-again-btn");
+
 let part;
 const synth = new Tone.PolySynth(3, Tone.Synth, {
   oscillator: {
@@ -58,6 +62,8 @@ let playingMelodyIndex = 0;
 let score = 0;
 let playing = true;
 let won = false;
+let hoverBlockIndex = -1;
+let hoverRadioIndex = -1;
 
 const canvas = document.getElementById("play-canvas");
 canvas.width = document.getElementById("canvas-container").clientWidth;
@@ -137,17 +143,94 @@ window.addEventListener("resize", () => {
   canvas.width = document.getElementById("canvas-container").clientWidth;
   canvas.height = document.getElementById("canvas-container").clientHeight;
 });
+
+document
+  .getElementById("canvas-container")
+  .addEventListener("mousemove", (e) => {
+    const { clientX, clientY } = e;
+    const { width, height } = canvas;
+    let canvasRect = canvas.getBoundingClientRect();
+    const mouseX = clientX - canvasRect.left;
+    const mouseY = clientY - canvasRect.top;
+    hoverRadioIndex = -1;
+    hoverBlockIndex = -1;
+    if (
+      Math.abs(mouseY - height * LOWER_BAR_RATIO) <
+      height * GRID_RATIO * 0.5
+    ) {
+      const limit = width * DISTANCE_RATIO * RADIO_WIDTH_RATIO * 0.5;
+      if (mouseX - width * 0.5 < -limit) {
+        hoverBlockIndex = 0;
+      } else if (mouseX - width * 0.5 > limit) {
+        hoverBlockIndex = 1;
+      } else {
+        hoverRadioIndex = Math.floor(
+          ((mouseX - width * (1 - DISTANCE_RATIO * RADIO_WIDTH_RATIO) * 0.5) /
+            (width * DISTANCE_RATIO * RADIO_WIDTH_RATIO)) *
+            numberOfInterpolations
+        );
+      }
+    } else if (
+      Math.abs(mouseY - height * HIGHER_BAR_RATIO) <
+      height * GRID_RATIO * 0.5
+    ) {
+      hoverBlockIndex = 2;
+    }
+  });
+document.getElementById("canvas-container").addEventListener("click", (e) => {
+  if (!playing) {
+    return;
+  }
+
+  const { clientX, clientY } = e;
+  const { width, height } = canvas;
+  let canvasRect = canvas.getBoundingClientRect();
+  const mouseX = clientX - canvasRect.left;
+  const mouseY = clientY - canvasRect.top;
+
+  if (Math.abs(mouseY - height * LOWER_BAR_RATIO) < height * GRID_RATIO * 0.5) {
+    const limit = width * DISTANCE_RATIO * RADIO_WIDTH_RATIO * 0.5;
+    if (mouseX - width * 0.5 < -limit) {
+      playingMelodyIndex = 0;
+      playMelody(leftMelody);
+    } else if (mouseX - width * 0.5 > limit) {
+      playingMelodyIndex = 1;
+      playMelody(rightMelody);
+    } else {
+      selectedIndex = Math.floor(
+        ((mouseX - width * (1 - DISTANCE_RATIO * RADIO_WIDTH_RATIO) * 0.5) /
+          (width * DISTANCE_RATIO * RADIO_WIDTH_RATIO)) *
+          numberOfInterpolations
+      );
+    }
+  } else if (
+    Math.abs(mouseY - height * HIGHER_BAR_RATIO) <
+    height * GRID_RATIO * 0.5
+  ) {
+    playingMelodyIndex = 2;
+    playMelody(interpolations[ansIndex]);
+  }
+});
 submitButton.addEventListener("click", (e) => {
   e.stopPropagation();
   submitButton.textContent = "ok";
   resultTextElement.style.display = "none";
+
   if (!playing) {
     // 0. cover the canvas with loading splash
+    if (part) {
+      part.stop();
+    }
+
     canvasLayer.style.display = "flex";
     if (!won) {
       updateScore(0);
     }
     updateGame();
+    return;
+  }
+
+  if (selectedIndex === -1) {
     return;
   }
 
@@ -164,61 +247,38 @@ submitButton.addEventListener("click", (e) => {
   } else {
     // lose
     // submitButton.classList.toggle("lose");
-    resultTextElement.style.display = "block";
-    resultTextElement.textContent = "Oh no, you lost!";
-    submitButton.textContent = "Play Again!";
+    // resultTextElement.style.display = "block";
+    // resultTextElement.textContent = "Oh no, you lost!";
+    submitButton.textContent = "Oh no!";
     won = false;
-  }
-});
-document
-  .getElementById("canvas-container")
-  .addEventListener("mousemove", (e) => {
-    const { clientX, clientY } = e;
-    const { width, height } = canvas;
-    let canvasRect = canvas.getBoundingClientRect();
+    canvasLayer.style.display = "flex";
+    loadingTextElement.style.display = "none";
+    endingButtonDivElement.style.display = "block";
+    document.getElementById("final-score").textContent = score;
 
-    mousePosition.x = clientX - canvasRect.left;
-    mousePosition.y = clientY - canvasRect.top;
-  });
-document.getElementById("canvas-container").addEventListener("click", (e) => {
-  if (!playing) {
-    return;
-  }
-
-  const { clientX, clientY } = e;
-  const { width, height } = canvas;
-  let canvasRect = canvas.getBoundingClientRect();
-  const mouseX = clientX - canvasRect.left;
-  const mouseY = clientY - canvasRect.top;
-
-  if (Math.abs(mouseY - height * LOWER_BAR_RATIO) < height * GRID_RATIO * 0.5) {
-    const limit = width * DISTANCE_RATIO * RADIO_WIDTH_RATIO * 0.5;
-    if (mouseX - width * 0.5 < -limit) {
-      console.log("left");
-      playingMelodyIndex = 0;
-      playMelody(leftMelody);
-    } else if (mouseX - width * 0.5 > limit) {
-      console.log("right");
-      playingMelodyIndex = 1;
-      playMelody(rightMelody);
+    if (score < 5) {
+      commentTextElement.textContent = "Practice takes time!";
+    } else if (score < 10) {
+      commentTextElement.textContent = "You know some latent!";
+    } else if (score < 15) {
+      commentTextElement.textContent = "You are almost master!";
+    } else if (score < 20) {
+      commentTextElement.textContent = "Latent master is you!";
     } else {
-      selectedIndex = Math.floor(
-        ((mouseX - width * (1 - DISTANCE_RATIO * RADIO_WIDTH_RATIO) * 0.5) /
-          (width * DISTANCE_RATIO * RADIO_WIDTH_RATIO)) *
-          numberOfInterpolations
-      );
-      console.log(`select ${selectedIndex}`);
+      commentTextElement.textContent = "Latent guru arise..";
     }
-  } else if (
-    Math.abs(mouseY - height * HIGHER_BAR_RATIO) <
-    height * GRID_RATIO * 0.5
-  ) {
-    console.log("high");
-    playingMelodyIndex = 2;
-    playMelody(interpolations[ansIndex]);
   }
 });
+playAgainButton.addEventListener("click", (e) => {
+  e.stopPropagation();
+  submitButton.textContent = "ok";
+  resultTextElement.style.display = "none";
 
+  loadingTextElement.style.display = "block";
+  endingButtonDivElement.style.display = "none";
+  updateScore(0);
+  updateGame();
+});
 // methods
 
 function setup() {
@@ -257,9 +317,11 @@ function drawPatterns(ctx) {
   ctx.save();
   ctx.strokeStyle = COLORS[3];
   ctx.lineWidth = 3;
+  let large = hoverBlockIndex === 2 ? 1.05 : 1;
+  let gw = gridWidth * large;
   ctx.translate(
-    -gridWidth * 0.5,
-    -gridWidth * 0.5 - height * (LOWER_BAR_RATIO - HIGHER_BAR_RATIO)
+    -gw * 0.5,
+    -gw * 0.5 - height * (LOWER_BAR_RATIO - HIGHER_BAR_RATIO)
   );
   if (selectedIndex !== -1) {
     const d = width * DISTANCE_RATIO * RADIO_WIDTH_RATIO;
@@ -268,15 +330,15 @@ function drawPatterns(ctx) {
       0
     );
     ctx.fillStyle = COLORS[3];
-    ctx.fillRect(gridWidth * 0.5 - 2, gridWidth + 8, 4, 25);
+    ctx.fillRect(gw * 0.5 - 2, gw + 8, 4, 25);
     // ctx.translate(-0.5 * d, 0);
   }
   roundRect(
     ctx,
     0,
     0,
-    gridWidth,
-    gridWidth,
+    gw,
+    gw,
     {
       tl: cornerRadius,
       tr: cornerRadius,
@@ -287,20 +349,15 @@ function drawPatterns(ctx) {
     true
   );
   if (middleMelody) {
-    drawMelody(
-      ctx,
-      gridWidth,
-      gridWidth,
-      middleMelody,
-      playingMelodyIndex === 2
-    );
+    drawMelody(ctx, gw, gw, middleMelody, playingMelodyIndex === 2);
   }
   ctx.restore();
 
   for (let side = 0; side < 2; side++) {
-    const gridPositionX = -gridWidth * 0.5 + distance * (side - 0.5);
-    const gridPositionY = -gridWidth * 0.5;
-
+    let large = hoverBlockIndex === side ? 1.05 : 1;
+    const gw = gridWidth * large;
+    const gridPositionX = -gw * 0.5 + distance * (side - 0.5);
+    const gridPositionY = -gw * 0.5;
     ctx.save();
     ctx.translate(gridPositionX, gridPositionY);
     // ctx.fillStyle = COLORS[side];
@@ -310,8 +367,8 @@ function drawPatterns(ctx) {
       ctx,
       0,
       0,
-      gridWidth,
-      gridWidth,
+      gw,
+      gw,
       {
         tl: cornerRadius,
         tr: cornerRadius,
@@ -324,7 +381,7 @@ function drawPatterns(ctx) {
 
     // draw melody or drum patterns
     const melody = side === 0 ? leftMelody : rightMelody;
-    drawMelody(ctx, gridWidth, gridWidth, melody, side === playingMelodyIndex);
+    drawMelody(ctx, gw, gw, melody, side === playingMelodyIndex);
 
     ctx.restore();
   }
@@ -335,7 +392,7 @@ function drawPatterns(ctx) {
     const dd = distance * RADIO_WIDTH_RATIO;
     const d = dd / (numberOfInterpolations + 1);
     const ratio = 1 + Math.sin(Date.now() * 0.005) * 0.1;
-    const u = ratio * unit;
+    let u = ratio * unit;
     // const x = -dd * 0.5 + d * i - u * 0.5;
     // const y = -u * 0.5;
 
@@ -344,6 +401,10 @@ function drawPatterns(ctx) {
 
     const x = -dd * 0.5 + d * i;
     const y = 0;
+
+    if (i === hoverRadioIndex + 1) {
+      u = unit * 1.5;
+    }
 
     if (i === selectedIndex + 1) {
       ctx.beginPath();
@@ -385,8 +446,14 @@ function drawMelody(ctx, width, height, melody, drawProgress = false) {
     ctx.restore();
   }
 
-  if (drawProgress && part && part.state === "started") {
-    ctx.fillStyle = "rgb(0, 150, 0)";
+  if (drawProgress && part && part.state === "started" && part.progress) {
+    let alpha = 1;
+    if (part.progress < 0.2) {
+      alpha = Math.pow(part.progress / 0.2, 2);
+    } else if (part.progress > 0.8) {
+      alpha = Math.pow((1 - part.progress) / 0.2, 2);
+    }
+    ctx.fillStyle = `rgba(0, 150, 0, ${alpha})`;
     ctx.fillRect(width * part.progress, 0, 5, height);
   }
 }
@@ -420,6 +487,7 @@ function updateScore(s) {
 }
 
 function updateGame() {
+  numberOfInterpolations = Math.floor(score / 5) + 3;
   // 1. update left and right melody
   // 2. wait for interpolations of left and right
   // 3. get a new ansIndex (random)
@@ -430,6 +498,7 @@ function updateGame() {
   while (leftIndex === rightIndex) {
     rightIndex = Math.floor(Math.random() * keys.length);
   }
+  console.log(`left: ${keys[leftIndex]}, right: ${keys[rightIndex]}`);
   leftMelody = presetMelodies[keys[leftIndex]];
   rightMelody = presetMelodies[keys[rightIndex]];
   selectedIndex = -1;
