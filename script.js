@@ -28,7 +28,8 @@ const DISTANCE_RATIO = isMobile ? 0.7 : 0.6;
 const RADIO_WIDTH_RATIO = isMobile ? 0.7 : 0.8;
 
 const playButtonTip = document.getElementById("play-btn-tip");
-const submitButton = document.getElementById("canvas-text-left");
+const submitButton = document.getElementById("submit-button");
+const resetButton = document.getElementById("reset-button");
 const stepsElement = document.getElementById("play-btn");
 const canvasLayer = document.getElementById("panel-container");
 const endingButtonDivElement = document.getElementById("layer-button-div");
@@ -37,6 +38,7 @@ const commentTextElement = document.getElementById("comment");
 const playAgainButton = document.getElementById("play-again-btn");
 const canvasContainer = document.getElementById("canvas-container");
 const splashPlayButton = document.getElementById("splash-play-btn");
+const canvasHintDiv = document.getElementById("canvas-hint-div");
 
 let part;
 const synth = new Tone.PolySynth(3, Tone.Synth, {
@@ -59,6 +61,17 @@ let leftMelody = presetMelodies["Twinkle"];
 let rightMelody = presetMelodies["Bounce"];
 let middleMelody;
 
+const audioContext = Tone.context;
+let editing = false;
+let waitingForResponse = false;
+let currentUrlId;
+let pianoroll;
+let events;
+let inputPianoroll;
+let inputEvents;
+let pianoLoading = true;
+let modelLoading = true;
+
 let interpolations;
 let numberOfInterpolations = 3;
 let ansIndex = 2;
@@ -69,8 +82,6 @@ let playing = true;
 let won = false;
 let hoverBlockIndex = -1;
 let hoverRadioIndex = -1;
-
-// new variables
 
 // canvas initialization
 const canvas = document.getElementById("play-canvas");
@@ -87,6 +98,7 @@ let melodies = [];
 let destinationMelodies = [];
 let positions = [];
 let displayPositions = [];
+let destinations = [];
 let displayRotateParas = [
   { freq: 0.1, phase: 1.5 },
   { freq: 0.11, phase: 0.5 },
@@ -95,16 +107,6 @@ let displayRotateParas = [
   { freq: 0.08, phase: 1.0 },
 ];
 
-const audioContext = Tone.context;
-let editing = false;
-let waitingForResponse = false;
-let currentUrlId;
-let pianoroll;
-let events;
-let inputPianoroll;
-let inputEvents;
-let pianoLoading = true;
-let modelLoading = true;
 const mvae = new music_vae.MusicVAE(
   "https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/mel_2bar_small"
 );
@@ -134,7 +136,6 @@ Tone.Buffer.on("load", () => {
 });
 
 // events
-
 splashPlayButton.addEventListener("click", async (e) => {
   document.getElementById("wrapper").style.visibility = "visible";
   const splash = document.getElementById("splash");
@@ -168,7 +169,11 @@ canvasContainer.addEventListener("mousemove", (e) => {
   hoverBlockIndex = -1;
 
   if (mouseX < width * MINOR_SCREEN_RATIO) {
-    hoverBlockIndex = nOfBlocks;
+    if (mouseY < 0.5 * height) {
+      hoverBlockIndex = nOfBlocks;
+    } else {
+      hoverBlockIndex = nOfBlocks + 1;
+    }
   }
 
   for (let i = 0; i < nOfBlocks; i++) {
@@ -199,8 +204,13 @@ canvasContainer.addEventListener("click", (e) => {
   const gridWidth = width * GRID_RATIO;
 
   if (mouseX < width * MINOR_SCREEN_RATIO) {
-    playingMelodyIndex = 5;
-    playMelody(melodies[5]);
+    if (mouseY < 0.5 * height) {
+      playingMelodyIndex = 5;
+      playMelody(melodies[5]);
+    } else {
+      playingMelodyIndex = 0;
+      playMelody(melodies[0]);
+    }
   }
 
   for (let i = 0; i < nOfBlocks; i++) {
@@ -215,6 +225,7 @@ canvasContainer.addEventListener("click", (e) => {
     ) {
       if (i !== 0) {
         selectedIndex = i;
+        submitButton.classList.remove("deactivated");
       }
       playingMelodyIndex = i;
       playMelody(melodies[i]);
@@ -222,13 +233,17 @@ canvasContainer.addEventListener("click", (e) => {
   }
 });
 submitButton.addEventListener("click", (e) => {
-  if (selectedIndex === -1) {
+  if (selectedIndex === -1 || selectedIndex === 0) {
     return;
   }
 
   if (part) {
     part.stop();
   }
+
+  // 0. animation
+  canvasHintDiv.style.display = "none";
+  mergeAnimation();
 
   // 1. replace melodies[0] with the selected
   melodies[0] = melodies[selectedIndex];
@@ -242,7 +257,10 @@ submitButton.addEventListener("click", (e) => {
   modelLoading = false;
   canvasLayer.style.display = "flex";
 
-  // 4. use the model
+  // 5. deactivate button
+  submitButton.classList.add("deactivated");
+
+  // 4. use the model & check reach or not?
   getMelodies();
 });
 playAgainButton.addEventListener("click", (e) => {
@@ -256,7 +274,12 @@ playAgainButton.addEventListener("click", (e) => {
 canvasLayer.addEventListener("click", (e) => {
   e.stopPropagation();
 });
+resetButton.addEventListener("click", (e) => {
+  moveBlock(0, Math.random(), Math.random());
+});
+
 // methods
+
 function initMelodiesAndPositions() {
   melodies[0] = presetMelodies["Twinkle"];
   melodies[5] = presetMelodies["Bounce"];
@@ -279,15 +302,23 @@ function initMelodiesAndPositions() {
   positions[3] = { x: 0.2, y: 0.75 };
   positions[4] = { x: 0.8, y: 0.75 };
 
+  destinations[0] = { x: 0.5, y: 0.5 };
+  destinations[1] = { x: 0.2, y: 0.25 };
+  destinations[2] = { x: 0.8, y: 0.25 };
+  destinations[3] = { x: 0.2, y: 0.75 };
+  destinations[4] = { x: 0.8, y: 0.75 };
+
   displayPositions = positions.map(({ x, y }) => ({
     x,
     y,
   }));
 }
+
 function setup() {
   Tone.Transport.start();
   Tone.Transport.bpm.value = BPM;
 }
+
 function draw() {
   // do things
   let ctx = canvas.getContext("2d");
@@ -297,6 +328,7 @@ function draw() {
   ctx.fillStyle = "rgba(255, 255, 255, 1)";
   ctx.fillRect(0, 0, width, height);
 
+  updatePositions();
   drawPatterns(ctx);
 
   requestAnimationFrame(() => {
@@ -304,19 +336,44 @@ function draw() {
   });
 }
 
+function updatePositions() {
+  for (let i = 0; i < nOfBlocks; i++) {
+    positions[i].x += (destinations[i].x - positions[i].x) * 0.1;
+    positions[i].y += (destinations[i].y - positions[i].y) * 0.1;
+  }
+}
+
+function moveBlock(index, x, y) {
+  destinations[index].x = x;
+  destinations[index].y = y;
+}
+
+function mergeAnimation() {
+  for (let i = 0; i < 5; i++) {
+    moveBlock(i, 0.5, 0.5);
+  }
+}
+function spreadAnimation() {
+  destinations[0] = { x: 0.5, y: 0.5 };
+  destinations[1] = { x: 0.2, y: 0.25 };
+  destinations[2] = { x: 0.8, y: 0.25 };
+  destinations[3] = { x: 0.2, y: 0.75 };
+  destinations[4] = { x: 0.8, y: 0.75 };
+}
+
 function drawPatterns(ctx) {
+  drawMap(ctx);
   drawLayout(ctx);
   drawTarget(ctx);
-  drawMap(ctx);
 }
 
 function drawLayout(ctx) {
   const { width, height } = ctx.canvas;
   const barWidth = 10;
   const minorWidth = width * MINOR_SCREEN_RATIO;
-  ctx.fillStyle = "rgba(0, 0, 200, 0.6)";
+  ctx.fillStyle = "rgba(102, 102, 215, 0.9)";
   ctx.fillRect(minorWidth, 0, barWidth, height);
-  ctx.fillStyle = "rgba(0, 0, 200, 0.3)";
+  ctx.fillStyle = "rgba(178, 178, 234, 0.9)";
   ctx.fillRect(0, 0, minorWidth, height);
 }
 
@@ -326,12 +383,13 @@ function drawTarget(ctx) {
   const cornerRadius = height * 0.05;
   const ww = width * MINOR_SCREEN_RATIO;
 
+  // target
   ctx.save();
   ctx.strokeStyle = COLORS[3];
   ctx.lineWidth = 3;
-  let large = hoverBlockIndex === 5 ? 1.05 : 1;
+  let large = hoverBlockIndex === nOfBlocks ? 1.05 : 1;
   let gw = gridWidth * large;
-  ctx.translate((ww - gw) * 0.5, (height - gw) * 0.5);
+  ctx.translate(ww * 0.5 - gw * 0.5, height * 0.3 - gw * 0.5);
   ctx.fillStyle = "rgb(255, 255, 255)";
   roundRect(
     ctx,
@@ -350,6 +408,34 @@ function drawTarget(ctx) {
   );
   if (melodies[5]) {
     drawMelody(ctx, gw, gw, melodies[5], playingMelodyIndex === 5);
+  }
+  ctx.restore();
+
+  // target
+  ctx.save();
+  ctx.strokeStyle = COLORS[3];
+  ctx.lineWidth = 3;
+  large = hoverBlockIndex === nOfBlocks + 1 ? 1.05 : 1;
+  gw = gridWidth * large;
+  ctx.translate(ww * 0.5 - gw * 0.5, height * 0.7 - gw * 0.5);
+  ctx.fillStyle = "rgb(255, 255, 255)";
+  roundRect(
+    ctx,
+    0,
+    0,
+    gw,
+    gw,
+    {
+      tl: cornerRadius,
+      tr: cornerRadius,
+      bl: cornerRadius,
+      br: cornerRadius,
+    },
+    true,
+    true
+  );
+  if (melodies[0]) {
+    drawMelody(ctx, gw, gw, melodies[0], playingMelodyIndex === 0);
   }
   ctx.restore();
 }
@@ -393,8 +479,9 @@ function drawMap(ctx) {
   for (let i = 0; i < nOfBlocks; i++) {
     let large = hoverBlockIndex === i ? 1.05 : 1;
     const gw = gridWidth * large;
-    const gridPositionX = displayPositions[i].x * ww - gw * 0.5;
-    const gridPositionY = displayPositions[i].y * height - gw * 0.5;
+    const pos = i === 0 ? positions : displayPositions;
+    const gridPositionX = pos[i].x * ww - gw * 0.5;
+    const gridPositionY = pos[i].y * height - gw * 0.5;
 
     ctx.save();
     ctx.translate(gridPositionX, gridPositionY);
@@ -497,6 +584,7 @@ function playMelody(melody) {
   part.start("+0.1");
   part.stop("+2m");
 }
+
 function updateSteps(s) {
   steps = s;
   stepsElement.textContent = `steps: ${steps}`;
@@ -548,10 +636,15 @@ async function getMelodies() {
   const newMelodies = await mvae.decode(tensors);
   melodies.splice(1, 4, ...newMelodies);
 
-  await delay(500);
+  await delay(1000);
+  spreadAnimation();
 
   modelLoading = false;
   canvasLayer.style.display = "none";
+
+  if (steps === 0) {
+    canvasHintDiv.style.display = "block";
+  }
 }
 
 async function delay(ms) {

@@ -37,157 +37,6 @@ h1 {
   margin-bottom: 1.5rem;
 }
 
-/* edit splash */
-#edit-splash {
-  display: none;
-  opacity: 0;
-  position: absolute;
-  /* top: -200vh; */
-  top: 0;
-  left: 0;
-  margin: 0;
-  z-index: 2;
-  text-align: center;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
-  transition: opacity 0.3s ease 0s;
-  /* transition: top 0.5s; */
-}
-#edit-splash-container {
-  box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  width: 80%;
-  max-width: 700px;
-  /* background-color: rgba(94, 167, 255, 0.9); */
-  background-color: rgba(112, 118, 255, 0.5);
-  padding: 2rem 0 3rem 0;
-  margin: 17vh auto 0 auto;
-  border-radius: 1rem;
-}
-#edit-splash-container h1 {
-  color: #fff;
-  /* background-color: rgba(230, 230, 230, 1); */
-  /* width: 10rem; */
-  margin: 0 auto 0.5rem auto;
-  padding: 0 1rem 0 1rem;
-}
-#edit-instruction {
-  margin: 0 auto 1rem auto;
-  color: #fff;
-  padding: 0 5rem 0 5rem;
-  /* width: 70%; */
-}
-#edit-canvas-wrapper {
-  width: 90%;
-  max-width: 500px;
-  margin: 0rem auto;
-  border-radius: 1rem;
-}
-#edit-canvas-container {
-  position: relative;
-  /* background-color: #373fff; */
-  background-color: #373fff;
-  width: "100%";
-  height: 20rem;
-  border-radius: 1rem;
-}
-
-#edit-canvas {
-  border: 5px solid;
-  border-color: #fff;
-  position: absolute;
-  top: 0;
-  left: 0;
-  border-radius: 1rem;
-}
-#edit-canvas-text {
-  user-select: none;
-  position: absolute;
-  background-color: #fff;
-  bottom: 0rem;
-  left: 1rem;
-  z-index: 1;
-  opacity: 0.4;
-  padding: 0.2rem 0.5rem 0.2rem 0.5rem;
-  border-radius: 0.5rem;
-}
-#edit-loading-text-div {
-  border: 5px solid;
-  border-color: #fff;
-  position: relative;
-  display: none;
-  /* display: flex; */
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-
-  /* background-color: #373fff; */
-  opacity: 1;
-  margin: 0 auto;
-  font-size: 1.3rem;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  border-radius: 1rem;
-}
-#edit-loading-text {
-  color: #fff;
-  font-size: 1.3rem;
-  background-color: #373fff;
-  border-radius: 1rem;
-  padding: 1rem;
-  opacity: 0.8;
-}
-#edit-loading-text-server {
-  color: #fff;
-  display: none;
-  width: 70%;
-  font-size: 0.8rem;
-  background-color: #373fff;
-  border-radius: 1rem;
-  padding: 1rem;
-  opacity: 0.8;
-}
-#edit-control-container {
-  display: flex;
-  width: "90%";
-  max-width: 500px;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-evenly;
-  margin: 2rem auto 2rem auto;
-  height: 2rem;
-  /* background-color: rgba(230, 230, 230, 1); */
-}
-#edit-control-container button,
-select {
-  border: none;
-  outline: none;
-  /* border: 2px solid; */
-  border-radius: 1rem;
-  /* border-color: #373fff; */
-  font-size: 0.8rem;
-  height: 2rem;
-  /* width: 5rem; */
-  padding: 0 1rem 0 1rem;
-  color: #373fff;
-  background-color: #fff;
-}
-#edit-control-container button:hover,
-select:hover {
-  border: none;
-  border-radius: 1rem;
-  /* border-color: #373fff; */
-  color: #fff;
-  background-color: #373fff;
-}
-#edit-send-btn {
-  /* font-weight: bold; */
-}
-#edit-control-seperator {
-  color: #fff;
-}
-
 /* controls */
 #control-container {
   display: flex;
@@ -220,6 +69,17 @@ select:hover {
   color: #fff;
   background-color: #373fff;
 }
+#control-container button.deactivated {
+  border-color: #888;
+  color: #888;
+  background-color: #fff;
+}
+#control-container button.deactivated:hover {
+  border-color: #888;
+  color: #888;
+  background-color: #fff;
+}
+
 #control-container .disabled {
   color: #ccc;
   border-color: #ccc;
@@ -320,6 +180,42 @@ select:hover {
   align-items: center;
   /* background-color: #373fff; */
 }
+#canvas-hint-div {
+  display: none;
+  position: absolute;
+  top: 10%;
+  right: -10%;
+
+  user-select: none;
+  background-color: #373fff;
+  color: #fff;
+  z-index: 1;
+  opacity: 0.8;
+  padding: 0 0.2rem 0 0.2rem;
+  border-radius: 0.5rem;
+
+  animation-name: dim;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+
+  transform: rotate(5deg);
+}
+
+@keyframes dim {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+#canvas-hint-div p {
+  margin: 0;
+  font-size: 0.8rem;
+}
 #panel-container {
   width: 100%;
   height: 100%;
@@ -402,6 +298,17 @@ select:hover {
   color: #fff;
   background-color: #373fff;
 }
+#canvas-buttons-div button.deactivated {
+  border-color: #888;
+  color: #888;
+  background-color: #fff;
+}
+#canvas-buttons-div button.deactivated:hover {
+  border-color: #888;
+  color: #888;
+  background-color: #fff;
+}
+
 #result-text {
   display: none;
   position: absolute;
@@ -411,11 +318,11 @@ select:hover {
   font-size: 0.8rem;
 }
 
-#canvas-text-left.win {
+#submit-button.win {
   color: #090;
 }
 
-#canvas-text-left.lose {
+#submit-button.lose {
   color: #f00;
 }
 
@@ -574,7 +481,17 @@ footer p {
 #target-text {
   position: absolute;
   width: 30%;
-  top: 0;
+  top: 5%;
+  left: 0;
+  text-align: center;
+  color: #fff;
+  z-index: 1;
+}
+
+#current-text {
+  position: absolute;
+  width: 30%;
+  top: 45%;
   left: 0;
   text-align: center;
   color: #fff;
@@ -656,73 +573,5 @@ footer p {
     bottom: 0rem;
     right: 0.5rem;
     padding: 0.2rem 0.5rem 0.2rem 0.5rem;
-  }
-  /* #canvas-text-left {
-    font-size: 0.7rem;
-    bottom: 0rem;
-    left: 0.5rem;
-    padding: 0.2rem 0.5rem 0.2rem 0.5rem;
-  } */
-  #edit-splash {
-    display: none;
-    opacity: 0;
-    position: absolute;
-    /* top: -200vh; */
-    top: 0;
-    left: 0;
-    margin: 0;
-    z-index: 2;
-    text-align: center;
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
-    transition: opacity 0.3s ease 0s;
-    /* transition: top 0.5s; */
-  }
-  #edit-splash-container {
-    box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.2),
-      0 6px 20px 0 rgba(0, 0, 0, 0.19);
-    width: 95%;
-    max-width: 700px;
-    /* background-color: rgba(94, 167, 255, 0.9); */
-    background-color: rgba(112, 118, 255, 0.8);
-    padding: 1rem 0 2rem 0;
-    margin: 5vh auto 0 auto;
-    border-radius: 1rem;
-  }
-  #edit-splash-container h1 {
-    color: #fff;
-    font-size: 1.5rem;
-    /* background-color: rgba(230, 230, 230, 1); */
-    /* width: 10rem; */
-    margin: 0 auto 0.5rem auto;
-    padding: 0 1rem 0 1rem;
-  }
-  #edit-control-container button,
-  select {
-    border: none;
-    outline: none;
-    /* border: 2px solid; */
-    border-radius: 0.8rem;
-    /* border-color: #373fff; */
-    font-size: 0.6rem;
-    /* width: 5rem; */
-    padding: 0 0.8rem 0 0.8rem;
-    height: 1.6rem;
-    color: #373fff;
-    background-color: #fff;
-  }
-  #edit-control-container button:hover,
-  select:hover {
-    border: none;
-    outline: none;
-    /* border: 2px solid; */
-    border-radius: 0.8rem;
-    /* border-color: #373fff; */
-    font-size: 0.6rem;
-    /* width: 5rem; */
-    padding: 0 0.8rem 0 0.8rem;
-    height: 1.6rem;
-    color: #373fff;
-    background-color: #fff;
   }
 }

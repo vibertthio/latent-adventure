@@ -99,41 +99,6 @@
       </div>
     </div>
 
-    <div id="edit-splash">
-      <div id="edit-splash-container">
-        <h1>Create New Riff</h1>
-        <p id="edit-instruction">
-          Press your mouse to edit the riff. You can also using draggin to draw
-          faster.
-        </p>
-        <div id="edit-control-container">
-          <button id="edit-play-btn">► play</button>
-          <select id="preset-select">
-            <option value="0">preset 1</option>
-            <option value="1">preset 2</option>
-            <option value="2">preset 3</option>
-            <option value="3">preset 4</option>
-          </select>
-          <button id="edit-clear-btn">clear</button>
-          <span id="edit-control-seperator">|</span>
-          <button id="edit-send-btn">SEND</button>
-          <button id="edit-cancel-btn">cancel</button>
-        </div>
-        <div id="edit-canvas-wrapper">
-          <div id="edit-canvas-container">
-            <button id="edit-canvas-text">🎹riff</button>
-            <div id="edit-loading-text-div">
-              <p id="edit-loading-text">
-                loading
-              </p>
-              <p id="edit-loading-text-server"></p>
-            </div>
-            <canvas id="edit-canvas"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div id="wrapper">
       <header id="header">
         <h1>Latent Adventure</h1>
@@ -150,7 +115,7 @@
             steps: 0
           </p>
         </div>
-        <button>reset</button>
+        <button id="reset-button" class="deactivated">reset</button>
         <!-- <span id="control-seperator">|</span> -->
         <!-- <div id="history-div">
           <span id="history-span"
@@ -167,6 +132,10 @@
       <div id="canvas-wrapper">
         <div id="canvas-container">
           <p id="target-text">Target</p>
+          <p id="current-text">Current</p>
+          <div id="canvas-hint-div">
+            <p>👇click your way to the target!</p>
+          </div>
           <div id="panel-container">
             <div id="loading-div">
               <p>loading...</p>
@@ -181,7 +150,7 @@
           </div>
 
           <div id="canvas-buttons-div">
-            <button id="canvas-text-left">go</button>
+            <button id="submit-button" class="deactivated">go</button>
             <p id="result-text">Good Job!</p>
           </div>
           <canvas id="play-canvas"></canvas>
