@@ -111,7 +111,9 @@ const mvae = new music_vae.MusicVAE(
   "https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/mel_2bar_small"
 );
 initMelodiesAndPositions();
-getMelodies();
+mvae.initialize().then(() => {
+  getMelodies();
+});
 const piano = SampleLibrary.load({
   instruments: "piano",
 });
